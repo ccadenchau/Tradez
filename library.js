@@ -157,6 +157,8 @@ function createCard(child, itemId, apiData, chartData) {
       /* -webkit-text-stroke: 2px rgba(255, 255, 255, 0.5);   */`
       e.style.background = `linear-gradient(rgba(0, 0, 0, 1), transparent), url("${item.icon}") center / cover no-repeat`;
       imageParent.append(e)
+
+      child.querySelector(".limited-icon-container").style.backgroundColor = "rgba(150,150,150,0.2)"
    }
 }
 
