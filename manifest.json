@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Tradez",
+  "version": "1.0",
+  "icons": {
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_icon": {
+      "128": "icons/icon128.png"
+    },
+    "default_title": "Tradez"
+  },
+  "description": "Roblox trading extension",
+  "permissions": ["scripting", "activeTab"],
+  "host_permissions": [
+    "https://*.roblox.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://www.roblox.com/users/*/trade"],
+      "js": ["send_trade.js", "library.js", "graph.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://www.roblox.com/trades*"],
+      "js": ["trades.js", "library.js", "graph.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
