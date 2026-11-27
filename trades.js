@@ -38,6 +38,28 @@ window.onload = async function() {
             createResTag(1, windows[1], selfRap-otherRap, otherRap)
         } catch (error) {
             // counter page
+
+            // get items in offer/request
+            let requestItems = document.getElementsByClassName("trade-request-item")
+            for (child of requestItems) {
+                // check value shit here
+                let offering = child.parentElement.firstElementChild.innerHTML == "Your Offer" ? true : false
+
+                let a = child.querySelector('a')
+                if (a) {
+                    let itemId = a.href.split('/')[4]
+                    if (itemId in apiData && apiData[itemId].value) {
+                        let offset = apiData[itemId].value - apiData[itemId].rap
+                        if (offering) {
+                            selfRap += offset
+                        } else {
+                            otherRap += offset
+                        }
+                    }
+                    createRequestCard(child, itemId, apiData)
+                }
+            }
+            
             let windows = document.getElementsByClassName('trade-request-window-offer')
             createResTag(0, windows[0], otherRap-selfRap, selfRap)
             createResTag(1, windows[1], selfRap-otherRap, otherRap)
