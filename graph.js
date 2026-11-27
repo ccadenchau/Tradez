@@ -5,7 +5,12 @@ function renderLineChart(args) {
         lineWidth = 2,
         padding = 8,
         showGrid = false,
-        showPoints = false
+        showPoints = false,
+        showAxisLabels = false,
+        showXAxisDates = false,
+        showHoverValues = false,
+        startAtZero = false,
+        gridOpacity = 0.1
     } = args;
 
     if (!element) {
@@ -17,6 +22,13 @@ function renderLineChart(args) {
     }
 
     element.innerHTML = "";
+    if (showAxisLabels) {
+        element.style.position = "relative";
+        const labels = document.createElement("div");
+        labels.className = "tradez-chart-axis-labels";
+        labels.style.cssText = "position:absolute;inset:0 auto 0 0;width:48px;display:flex;flex-direction:column;justify-content:space-between;padding:4px 0;box-sizing:border-box;color:#606875;font:11px Arial,sans-serif;pointer-events:none;z-index:1";
+        element.append(labels);
+    }
 
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
@@ -39,6 +51,7 @@ function renderLineChart(args) {
             Number(point[1])
         ])
         .sort((a, b) => a[0] - b[0]);
+    let hoveredPoint = null;
 
     function resize() {
         const rect = element.getBoundingClientRect();
@@ -71,24 +84,28 @@ function renderLineChart(args) {
         const minX = Math.min(...timestamps);
         const maxX = Math.max(...timestamps);
 
-        let minY = Math.min(...values);
-        let maxY = Math.max(...values);
-
-        if (minY === maxY) {
-            const paddingY = Math.abs(minY) * 0.1 || 1;
-
-            minY -= paddingY;
-            maxY += paddingY;
-        } else {
-            const range = maxY - minY;
-            const paddingY = range * 0.1;
-
-            minY -= paddingY;
-            maxY += paddingY;
+        let minY = 0;
+        let maxY = Math.max(...values, 1);
+        if (!startAtZero) {
+            minY = Math.min(...values);
+            maxY = Math.max(...values);
+            const valuePadding = (maxY - minY || Math.abs(minY) || 10) * 0.1;
+            minY -= valuePadding;
+            maxY += valuePadding;
         }
 
-        const chartWidth = Math.max(0, width - padding * 2);
-        const chartHeight = Math.max(0, height - padding * 2);
+        const leftPadding = padding;
+        const chartWidth = Math.max(0, width - leftPadding - padding);
+        const bottomPadding = showXAxisDates ? 20 : padding;
+        const chartHeight = Math.max(0, height - padding - bottomPadding);
+        if (showAxisLabels) {
+            const labels = element.querySelector(".tradez-chart-axis-labels");
+            labels.style.width = `${Math.max(48, leftPadding + 8)}px`;
+            labels.style.left = "0";
+            labels.style.paddingLeft = "4px";
+            const formatLabel = value => Math.round(value).toLocaleString();
+            labels.innerHTML = `<span>${formatLabel(maxY)}</span><span>${formatLabel((minY + maxY) / 2)}</span><span>${formatLabel(minY)}</span>`;
+        }
 
         function getX(timestamp) {
             if (maxX === minX) {
@@ -96,7 +113,7 @@ function renderLineChart(args) {
             }
 
             return (
-                padding +
+                leftPadding +
                 ((timestamp - minX) / (maxX - minX)) *
                     chartWidth
             );
@@ -111,8 +128,21 @@ function renderLineChart(args) {
             );
         }
 
+        if (showXAxisDates) {
+            ctx.fillStyle = "#606875";
+            ctx.font = "10px Arial, sans-serif";
+            ctx.textBaseline = "bottom";
+            const dateFor = timestamp => new Date(Math.abs(timestamp) < 1e12 ? timestamp * 1000 : timestamp).toLocaleDateString();
+            ctx.textAlign = "left";
+            ctx.fillText(dateFor(minX), leftPadding, height - 3);
+            ctx.textAlign = "center";
+            ctx.fillText(dateFor((minX + maxX) / 2), width / 2, height - 3);
+            ctx.textAlign = "right";
+            ctx.fillText(dateFor(maxX), width - padding, height - 3);
+        }
+
         if (showGrid) {
-            ctx.strokeStyle = "rgba(0, 0, 0, 0.1)";
+            ctx.strokeStyle = `rgba(0, 0, 0, ${gridOpacity})`;
             ctx.lineWidth = 1;
 
             const lines = 4;
@@ -123,7 +153,7 @@ function renderLineChart(args) {
                     (chartHeight / lines) * i;
 
                 ctx.beginPath();
-                ctx.moveTo(padding, y);
+                ctx.moveTo(leftPadding, y);
                 ctx.lineTo(width - padding, y);
                 ctx.stroke();
             }
@@ -177,6 +207,44 @@ function renderLineChart(args) {
                 ctx.fill();
             });
         }
+        if (showHoverValues && hoveredPoint) {
+            const x = getX(hoveredPoint[0]);
+            ctx.strokeStyle = "rgba(50, 60, 72, 0.45)";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, height);
+            ctx.stroke();
+        }
+    }
+
+    let readout;
+    if (showHoverValues) {
+        readout = document.createElement("div");
+        readout.className = "tradez-chart-point-readout";
+        readout.style.cssText = "display:none;position:absolute;padding:5px 8px;border-radius:5px;background:rgba(255,255,255,.96);color:#20242b;font:600 12px Arial,sans-serif;pointer-events:none;z-index:2;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.15)";
+        element.append(readout);
+        canvas.addEventListener("pointermove", event => {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const timestamps = sortedPoints.map(point => point[0]);
+            const minX = Math.min(...timestamps);
+            const maxX = Math.max(...timestamps);
+            const chartWidth = Math.max(0, rect.width - padding * 2);
+            const pointX = point => maxX === minX ? rect.width / 2 : padding + ((point[0] - minX) / (maxX - minX)) * chartWidth;
+            hoveredPoint = sortedPoints.reduce((best, point) => Math.abs(pointX(point) - x) < Math.abs(pointX(best) - x) ? point : best, sortedPoints[0]);
+            readout.textContent = hoveredPoint[1].toLocaleString();
+            readout.style.display = "block";
+            const bounds = element.getBoundingClientRect();
+            readout.style.left = `${Math.min(element.clientWidth - readout.offsetWidth - 4, Math.max(4, event.clientX - bounds.left + 12))}px`;
+            readout.style.top = `${Math.min(element.clientHeight - readout.offsetHeight - 4, Math.max(4, event.clientY - bounds.top + 12))}px`;
+            resize();
+        });
+        canvas.addEventListener("pointerleave", () => {
+            hoveredPoint = null;
+            readout.style.display = "none";
+            resize();
+        });
     }
 
     const observer = new ResizeObserver(resize);
