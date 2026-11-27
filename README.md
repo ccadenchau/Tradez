@@ -10,4 +10,4 @@ Simple and easy to use trading extension. Provides additional data through my [p
 
 | Send page | List view |
 |---|---|
-| <img width="549" alt="Trading extension" src="https://github.com/user-attachments/assets/a119028b-3644-47c7-9cc6-ff7128849b9e" /> | <img width="303" alt="Trading extension details" src="https://github.com/user-attachments/assets/7c30b992-c009-42eb-8bce-965c350b71f4" /> |
+| <img width="1105" height="567" alt="image" src="https://github.com/user-attachments/assets/3a4d4bd5-30c4-41e5-878d-faf18ef38171" />| <img width="596" height="707" alt="image" src="https://github.com/user-attachments/assets/7b8b83be-5748-4b2a-a506-63fde77b32a1" />|
