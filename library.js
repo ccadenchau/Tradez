@@ -155,7 +155,7 @@ function createCard(child, itemId, apiData, chartData) {
       pointer-events: none;
       z-index: -1;
       /* -webkit-text-stroke: 2px rgba(255, 255, 255, 0.5);   */`
-      e.style.background = `linear-gradient(rgba(0, 0, 0, 0.5), transparent), url("${item.icon}") center / cover no-repeat`;
+      e.style.background = `linear-gradient(rgba(0, 0, 0, 1), transparent), url("${item.icon}") center / cover no-repeat`;
       imageParent.append(e)
    }
 }
