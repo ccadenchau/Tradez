@@ -138,6 +138,7 @@ function createCard(child, itemId, apiData, chartData) {
          e.append(tag)
       }
 
+      if (a = child.querySelector(".thumbnail-2d-container")) {a.remove()}
       e.id = "_tradez-meta-tag"
       e.style = `
       position: relative;
@@ -152,8 +153,8 @@ function createCard(child, itemId, apiData, chartData) {
       left: 0; 
       top: 0; 
       pointer-events: none;
-      /* -webkit-text-stroke: 2px rgba(255, 255, 255, 0.5);   */
-      background: linear-gradient(rgba(0, 0, 0, 0.5), transparent)`
+      /* -webkit-text-stroke: 2px rgba(255, 255, 255, 0.5);   */`
+      e.style.background = `linear-gradient(rgba(0, 0, 0, 0.5), transparent), url("${item.icon}") center / cover no-repeat`;
       imageParent.append(e)
    }
 }
